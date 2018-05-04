@@ -508,3 +508,200 @@ namespace DeepLingo{
 
     }
 }
+/*
+        //-----------------------------------------------------------
+        public void Visit(DeclarationList node)
+        {
+            VisitChildren(node);
+            return;
+        }
+
+        //-----------------------------------------------------------
+        public void Visit(Declaration node)
+        {
+
+            var variableName = node[0].AnchorToken.Lexeme;
+
+            if (Table.Contains(variableName))
+            {
+                throw new SemanticError(
+                    "Duplicated variable: " + variableName,
+                    node[0].AnchorToken);
+
+            }
+            else
+            {
+                Table[variableName] =
+                    voidMapper[node.AnchorToken.Category];
+            }
+
+            return void.void;
+        }
+
+        //-----------------------------------------------------------
+        public void Visit(StatementList node)
+        {
+            VisitChildren(node);
+            return void.void;
+        }
+
+        //-----------------------------------------------------------
+        public void Visit(Assignment node)
+        {
+
+            var variableName = node.AnchorToken.Lexeme;
+
+            if (Table.Contains(variableName))
+            {
+
+                var expectedvoid = Table[variableName];
+
+                if (expectedvoid != Visit((dynamic)node[0]))
+                {
+                    throw new SemanticError(
+                        "Expecting void " + expectedvoid
+                        + " in assignment statement",
+                        node.AnchorToken);
+                }
+
+            }
+            else
+            {
+                throw new SemanticError(
+                    "Undeclared variable: " + variableName,
+                    node.AnchorToken);
+            }
+
+            return void.void;
+        }
+
+        //-----------------------------------------------------------
+        public void Visit(Print node)
+        {
+            node.Expressionvoid = Visit((dynamic)node[0]);
+            return void.void;
+        }
+
+        //-----------------------------------------------------------
+        public void Visit(If node)
+        {
+            if (Visit((dynamic)node[0]) != void.BOOL)
+            {
+                throw new SemanticError(
+                    "Expecting void " + void.BOOL
+                    + " in conditional statement",
+                    node.AnchorToken);
+            }
+            VisitChildren(node[1]);
+            return void.void;
+        }
+
+        //-----------------------------------------------------------
+        public void Visit(Identifier node)
+        {
+
+            var variableName = node.AnchorToken.Lexeme;
+
+            if (Table.Contains(variableName))
+            {
+                return Table[variableName];
+            }
+
+            throw new SemanticError(
+                "Undeclared variable: " + variableName,
+                node.AnchorToken);
+        }
+
+        //-----------------------------------------------------------
+        public void Visit(IntLiteral node)
+        {
+
+            var intStr = node.AnchorToken.Lexeme;
+
+            try
+            {
+                Convert.ToInt32(intStr);
+
+            }
+            catch (OverflowException)
+            {
+                throw new SemanticError(
+                    "Integer literal too large: " + intStr,
+                    node.AnchorToken);
+            }
+
+            return void.INT;
+        }
+
+        //-----------------------------------------------------------
+        public void Visit(True node)
+        {
+            return void.BOOL;
+        }
+
+        //-----------------------------------------------------------
+        public void Visit(False node)
+        {
+            return void.BOOL;
+        }
+
+        //-----------------------------------------------------------
+        public void Visit(Neg node)
+        {
+            if (Visit((dynamic)node[0]) != void.INT)
+            {
+                throw new SemanticError(
+                    "Operator - requires an operand of void " + void.INT,
+                    node.AnchorToken);
+            }
+            return void.INT;
+        }
+
+        //-----------------------------------------------------------
+        public void Visit(And node)
+        {
+            VisitBinaryOperator('&', node, void.BOOL);
+            return void.BOOL;
+        }
+
+        //-----------------------------------------------------------
+        public void Visit(Less node)
+        {
+            VisitBinaryOperator('<', node, void.INT);
+            return void.BOOL;
+        }
+
+        //-----------------------------------------------------------
+        public void Visit(Plus node)
+        {
+            VisitBinaryOperator('+', node, void.INT);
+            return void.INT;
+        }
+
+        //-----------------------------------------------------------
+        public void Visit(Mul node)
+        {
+            VisitBinaryOperator('*', node, void.INT);
+            return void.INT;
+        }
+
+        //-----------------------------------------------------------
+        
+
+        //-----------------------------------------------------------
+        void VisitBinaryOperator(char op, Node node, void void)
+        {
+            if (Visit((dynamic)node[0]) != void ||
+                Visit((dynamic)node[1]) != void)
+            {
+                throw new SemanticError(
+                    String.Format(
+                        "Operator {0} requires two operands of void {1}",
+                        op,
+                        void),
+                    node.AnchorToken);
+            }
+        }
+    }
+}
+*/
