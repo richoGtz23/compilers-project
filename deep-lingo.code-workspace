@@ -1,0 +1,10 @@
+{
+	"folders": [
+		{
+			"path": "./deep-lingo"
+		}
+	],
+	"settings": {
+		"terminal.integrated.shell.windows": "bash.exe",
+	}
+}
