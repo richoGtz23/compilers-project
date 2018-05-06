@@ -50,16 +50,10 @@ namespace DeepLingo {
                     semantic.Visit((dynamic)program);
                     Console.WriteLine("Semantics OK.");
                     Console.WriteLine();
-                    Console.WriteLine("Symbol Table of Functions");
-                    Console.WriteLine("============");
-                    foreach (var entry in semantic.functionsTable){
-                        Console.WriteLine(entry);
-                    }
-                    Console.WriteLine("Symbol Table of Global Variables");
-                    Console.WriteLine("============");
-                    foreach (var entry in semantic.globalVariables)
-                    {
-                        Console.WriteLine(entry);
+                    Console.WriteLine(semantic.functionsTable);
+                    Console.WriteLine(semantic.globalVariables);
+                    foreach (var entry in semantic.localFunctionsTables) {
+                        Console.WriteLine(entry.ToString());
                     }
                     // Parser parser = new Parser (new Scanner (input).Start ().GetEnumerator ());
                 } catch (FileNotFoundException e) {

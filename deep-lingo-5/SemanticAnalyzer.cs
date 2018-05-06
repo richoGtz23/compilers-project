@@ -9,45 +9,23 @@ using System.Collections.Generic;
 namespace DeepLingo{
     class SemanticAnalyzer{
         //-----------------------------------------------------------
-        public SymbolTable functionsTable{
-            get;
-            private set;
-        }
-        public SymbolTable globalVariables{
-            get;
-            private set;
-        }
-        public Boolean isSecondRun{
-            get;
-            private set;
-        }
-        public int loopCounter{
-            get;
-            private set;
-        }
-        public int ifCounter{
-            get;
-            private set;
-        }
-        public SymbolTable tempTable{
-            get;
-            private set;
-        }
+        public FunctionTable functionsTable;
+        public SymbolTable globalVariables;
+        public Boolean isSecondRun;
+        public Boolean insideFunction;
+        public int loopCounter;
+        public SymbolTable tempTable;
+        public IDictionary<string, SymbolTable> localFunctionsTables = new Dictionary<string, SymbolTable>();
+        public Boolean broke;
         //-----------------------------------------------------------
         public SemanticAnalyzer(){
-            functionsTable = new SymbolTable();
+            functionsTable = new FunctionTable();
             globalVariables = new SymbolTable();
             tempTable = new SymbolTable();
             loopCounter = 0;
-            ifCounter = 0;
-        }
-        public Boolean varExistsInTables(Identifier node){
-            var variableName = node.AnchorToken.Lexeme;
-            if (!tempTable.Contains(variableName) && !globalVariables.Contains(variableName)){
-                throw new SemanticError(
-                    "Variable " + variableName + " those not exist in Scope", node.AnchorToken);
-            }
-            return true;
+            isSecondRun = false;
+            insideFunction = false;
+            broke = false;
         }
         public void APIFuncitons(){
             functionsTable["printi"] = 1;
@@ -69,369 +47,147 @@ namespace DeepLingo{
         }
         //-----------------------------------------------------------
         public void Visit(Prog node){
-            Console.WriteLine("Prog");
+           
             APIFuncitons();
-            isSecondRun = false;
-            Visit((dynamic)node[0]);
-            Visit((dynamic)node[1]);
+            VisitChildren((dynamic)node);
             if(!functionsTable.Contains("main")){
                 throw new SemanticError("No main function found",node[1][0].AnchorToken);
-            }else{
-                isSecondRun = true;
-                Visit((dynamic)node[0]);
-                Visit((dynamic)node[1]);
             }
-        }
-        public void Visit(GlobalVarDef node){
-            Console.WriteLine("GlobalVarDef");
-            if(!isSecondRun)
-                VisitChildren((dynamic)node);
-            
-            
+            isSecondRun = true;
+            VisitChildren((dynamic)node);
         }
         public void Visit(VarDef node){
-            Console.WriteLine("VarDef");
-            if(isSecondRun){
-                Visit((dynamic)node[0],tempTable);
-            }else{
-                Visit((dynamic)node[0]);
+           
+            //Visit((dynamic)node[0]);
+            foreach (var n in node[0]){
+                var variableName = n.AnchorToken.Lexeme;
+               
+                if(!insideFunction && !isSecondRun){
+                    if (globalVariables.Contains(variableName)){
+                        throw new SemanticError(
+                            "Duplicated variable: " + variableName,node.AnchorToken);
+
+                    }
+                    else{
+                        globalVariables.Add(variableName);
+                    }
+                }else{
+                    if(isSecondRun){
+                        if (tempTable.Contains(variableName)){
+                            throw new SemanticError(
+                                "Duplicated variable: " + variableName, node.AnchorToken);
+                        }
+                        else
+                        {
+                            tempTable.Add(variableName);
+                        }
+                    }
+
+                }
             }
             
         }
         public void Visit(VarList node){
-            Console.WriteLine("VarList");
+           
             VisitChildren((dynamic)node);
         }
-        public void Visit(FunList node){
-            Console.WriteLine("FunList");
-            VisitChildren((dynamic)node);
-        }
-        public void Visit(Identifier node, SymbolTable table = null){
+        public void Visit(Identifier node){
             var variableName = node.AnchorToken.Lexeme;
-            Console.WriteLine(variableName);
-            if(table == null && !isSecondRun){
-                if (globalVariables.Contains(variableName)){
-                    throw new SemanticError(
-                        "Duplicated variable: " + variableName,node.AnchorToken);
-
-                }
-                else{
-                    globalVariables[variableName] = 1;
-                }
-            }else{
-                if(isSecondRun){
-                    if (table.Contains(variableName)){
-                        throw new SemanticError(
-                            "Duplicated variable: " + variableName, node.AnchorToken);
-                    }
-                    else
-                    {
-                        table[variableName] = 1;
-                    }
-                }
-
+            if (!tempTable.Contains(variableName) && !globalVariables.Contains(variableName)){
+                throw new SemanticError(
+                    "Variable " + variableName + " those not exist in Scope", node.AnchorToken);
             }
             
         }
         public void Visit(FunDef node){
-            Console.Write("Fundef ");
             var functionName = node.AnchorToken.Lexeme;
-            Console.WriteLine(functionName);
-            var arity = 0;
-            tempTable = new SymbolTable();
-            foreach (var n in node){
-                if (n.GetType() == typeof(IdList)){
-                    arity = Visit((IdList)n,tempTable);
-                }else{
-                    if(!isSecondRun){
-                        continue;
-                    }
-                    Visit((dynamic)n); 
-                }
-            }
+           
             if(!isSecondRun){
-                if (functionsTable.Contains(functionName))
-                {
-                    throw new SemanticError(
-                        "Duplicated Function: " + functionName, node.AnchorToken);
-                }
-                else
-                {
+                if(functionsTable.Contains(functionName)){
+                    throw new SemanticError("Function Already defined : "+functionName, node.AnchorToken);
+                }else{
+                    int arity = 0;
+                    if(node[0].GetType() == typeof(IdList)){
+                        foreach(var n in node[0]){
+                            arity++;
+                        }
+                    }
                     functionsTable[functionName] = arity;
+                }
+            }else{
+                tempTable = new SymbolTable();
+                insideFunction = true;
+                VisitChildren((dynamic)node);
+                insideFunction = false;
+                localFunctionsTables[functionName] = tempTable;
+                tempTable = new SymbolTable();
+            }
+        }
+        public void Visit(IdList node){
+           
+            if(isSecondRun){
+                foreach (var n in node){
+                    var variableName = n.AnchorToken.Lexeme;
+                    if(tempTable.Contains(variableName)){
+                        throw new SemanticError(
+                            "Duplicated variable: " + variableName,node.AnchorToken);
+                    }else{
+                        tempTable.Add(variableName);
+                    }
                 }
             }
         }
-        public int Visit(IdList node, SymbolTable table = null){
-            var arityCounter = 0;
-            Console.WriteLine("IdList");
-            foreach (var n in node){
-                Visit((dynamic)n, table);
-                arityCounter++;
-            }
-            return arityCounter;
+        public void Visit(ExpressionList node){
+            VisitChildren(node);
         }
 
         public void Visit(StmtList node){
-            Console.WriteLine("StmtList ");
+           
             VisitChildren((dynamic)node);
         }
         public void Visit(If node){
-            Console.WriteLine("If");
-            ifCounter++;
-            foreach (var n in node){
-                if (n.GetType() == typeof(Identifier)){
-                    varExistsInTables((Identifier)n);
-                }
-                else{
-                    Visit((dynamic)n);
-                }
-            }
-            ifCounter--;
+           
+            VisitChildren((dynamic)node);
         }
         public void Visit(Else node){
-            Console.WriteLine("Else");
-            if(ifCounter>0){
-                foreach (var n in node)
-                {
-                    if (n.GetType() == typeof(Identifier))
-                    {
-                        varExistsInTables((dynamic)n);
-                    }
-                    else
-                    {
-                        Visit((dynamic)n);
-                    }
-                }
-            }
+           
+            VisitChildren((dynamic)node);
         }
         public void Visit(ElseIf node)
         {
-            Console.WriteLine("ElseIf");
-            if (ifCounter > 0)
-            {
-                foreach (var n in node)
-                {
-                    if (n.GetType() == typeof(Identifier))
-                    {
-                        varExistsInTables((dynamic)n);
-                    }
-                    else
-                    {
-                        Visit((dynamic)n);
-                    }
-                }
-            }
-        }
-        public void Visit(ElseIfList node){
-            Console.WriteLine("ElseIfList");
+           
             VisitChildren((dynamic)node);
         }
-        public void Visit(Equals node){
-            Console.WriteLine("Equals ");
-            foreach (var n in node){
-                if (n.GetType() == typeof(Identifier))
-                {
-                    varExistsInTables((dynamic)n);
-                }
-                else
-                {
-                    Visit((dynamic)n);
-                }
-            }
+        public void Visit(ElseIfList node){
+           
+            VisitChildren((dynamic)node);
         }
-        public void Visit(Not_Equals node){
-            Console.WriteLine("Not_Equals ");
-            foreach (var n in node){
-                if (n.GetType() == typeof(Identifier)){
-                    varExistsInTables((dynamic)n);
-                }
-                else{
-                    Visit((dynamic)n);
-                }
-            }
-        }
-        public void Visit(Gt node)
-        {
-            Console.WriteLine("Gt ");
-            foreach (var n in node)
-            {
-                if (n.GetType() == typeof(Identifier))
-                {
-                    varExistsInTables((dynamic)n);
-                }
-                else
-                {
-                    Visit((dynamic)n);
-                }
-            }
-        }
-        public void Visit(Goet node)
-        {
-            Console.WriteLine("Goet ");
-            foreach (var n in node)
-            {
-                if (n.GetType() == typeof(Identifier))
-                {
-                    varExistsInTables((dynamic)n);
-                }
-                else
-                {
-                    Visit((dynamic)n);
-                }
-            }
-        }
-        public void Visit(Lt node)
-        {
-            Console.WriteLine("Lt ");
-            foreach (var n in node)
-            {
-                if (n.GetType() == typeof(Identifier))
-                {
-                    varExistsInTables((dynamic)n);
-                }
-                else
-                {
-                    Visit((dynamic)n);
-                }
-            }
-        }
-        public void Visit(Loet node)
-        {
-            Console.WriteLine("Loet ");
-            foreach (var n in node)
-            {
-                if (n.GetType() == typeof(Identifier))
-                {
-                    varExistsInTables((dynamic)n);
-                }
-                else
-                {
-                    Visit((dynamic)n);
-                }
-            }
-        }
+        
         public void Visit(Or node){
-            Console.WriteLine("Or ");
-            foreach (var n in node)
-            {
-                if (n.GetType() == typeof(Identifier))
-                {
-                    varExistsInTables((dynamic)n);
-                }
-                else
-                {
-                    Visit((dynamic)n);
-                }
-            }
+           
+            VisitChildren((dynamic)node);
         }
         public void Visit(And node)
         {
-            Console.WriteLine("And ");
-            foreach (var n in node)
-            {
-                if (n.GetType() == typeof(Identifier))
-                {
-                    varExistsInTables((dynamic)n);
-                }
-                else
-                {
-                    Visit((dynamic)n);
-                }
-            }
+           
+            VisitChildren((dynamic)node);
         }
         public void Visit(Assignment node){
-            Console.WriteLine("Assignment");
-            foreach (var n in node)
-            {
-                if (n.GetType() == typeof(Identifier))
-                {
-                    varExistsInTables((dynamic)n);
-                }
-                else
-                {
-                    Visit((dynamic)n);
-                }
+            var variableName = node.AnchorToken.Lexeme;
+            if(!tempTable.Contains(variableName) && !globalVariables.Contains(variableName)){
+                throw new SemanticError("it is not possible to assign to variable"+ variableName+
+                "because it is not defined ",node.AnchorToken);    
             }
         }
-        public void Visit(Sum node){
-            Console.WriteLine("Sum");
-            foreach (var n in node)
-            {
-                if (n.GetType() == typeof(Identifier))
-                {
-                    varExistsInTables((dynamic)n);
-                }
-                else
-                {
-                    Visit((dynamic)n);
-                }
-            }
-        }
-        public void Visit(Mul node){
-            Console.WriteLine("Mul");
-            foreach (var n in node)
-            {
-                if (n.GetType() == typeof(Identifier))
-                {
-                    varExistsInTables((dynamic)n);
-                }
-                else
-                {
-                    Visit((dynamic)n);
-                }
-            }
-        }
-        public void Visit(Sub node){
-            Console.WriteLine("Sub");
-            foreach (var n in node)
-            {
-                if (n.GetType() == typeof(Identifier))
-                {
-                    varExistsInTables((dynamic)n);
-                }
-                else
-                {
-                    Visit((dynamic)n);
-                }
-            }
-        }
-        public void Visit(Div node){
-            Console.WriteLine("Div");
-            foreach (var n in node)
-            {
-                if (n.GetType() == typeof(Identifier))
-                {
-                    varExistsInTables((dynamic)n);
-                }
-                else
-                {
-                    Visit((dynamic)n);
-                }
-            }
-        }
-        public void Visit(Mod node)
-        {
-            Console.WriteLine("Mod");
-            foreach (var n in node)
-            {
-                if (n.GetType() == typeof(Identifier))
-                {
-                    varExistsInTables((dynamic)n);
-                }
-                else
-                {
-                    Visit((dynamic)n);
-                }
-            }
-        }
+        
         public void Visit(VarChar node){
-            Console.WriteLine("VarChar");
+           
         }
         public void Visit(VarString node){
-            Console.WriteLine("VarString");
+           
         }
         public void Visit(VarInt node){
-            Console.WriteLine("VarInt");
+           
             string inputString = node.AnchorToken.Lexeme;
             int numValue;
             bool parsed = Int32.TryParse(inputString, out numValue);
@@ -440,71 +196,85 @@ namespace DeepLingo{
                 throw new SemanticError("Int32. could not parse "+inputString+" to an int.", node.AnchorToken);
         }
         public void Visit(Array node){
-            Console.WriteLine("Array");
+           
             VisitChildren((dynamic)node);
         }
         public void Visit(Loop node){
-            Console.WriteLine("Loop");
+           
             loopCounter++;
             VisitChildren((dynamic)node);
+            if(!broke)
+                throw new SemanticError("infinite loop ",node.AnchorToken);
             loopCounter--;
         }
         public void Visit(FunCall node){
-            Console.WriteLine("FunCall");
+           
             var funName = node.AnchorToken.Lexeme;
             if(!functionsTable.Contains(funName)){
                 throw new SemanticError("Function: "+funName+"does not exist", node.AnchorToken);
             }else{
                 int arity = 0;
-                foreach (var n in node){
+                foreach (var n in node[0]){
                     arity++;
-                    Console.WriteLine("Node: "+n.AnchorToken.Lexeme);
-                    if (n.GetType() == typeof(Identifier)){
-                        varExistsInTables((Identifier)n);
-                    }
-                    else{
-                        Visit((dynamic)n);
-                    }
+                   
+                    Visit((dynamic)n);
                 }
                 if(arity!=functionsTable[funName]){
-                    throw new SemanticError("Function: " + funName + "wrong arity of parameters", node.AnchorToken);
+                    throw new SemanticError("Function: " + funName + " wrong arity of parameters", node.AnchorToken);
                 }
             }
         }
         public void Visit(Break node){
             if(loopCounter>0){
-                Console.WriteLine("Break");
+               broke = true;
             }else{
                 throw new SemanticError("Break statements not in loop",node.AnchorToken);
             }
             
         }
         public void Visit(Increment node){
-            Console.WriteLine("Increment");
-            varExistsInTables((dynamic)node[0]);
+           
+            var variableName = node.AnchorToken.Lexeme;
+            if(!tempTable.Contains(variableName) && !globalVariables.Contains(variableName)){
+                throw new SemanticError("it is not possible to assign to variable"+ variableName+
+                "because it is not defined ",node.AnchorToken);    
+            }
         }
         public void Visit(Decrement node){
-            Console.WriteLine("Decrement");
-            varExistsInTables((dynamic)node[0]);
-        }
-        public void Visit(True node){
-            Console.WriteLine("True");
+           
+            var variableName = node.AnchorToken.Lexeme;
+            if(!tempTable.Contains(variableName) && !globalVariables.Contains(variableName)){
+                throw new SemanticError("it is not possible to assign to variable"+ variableName+
+                "because it is not defined ",node.AnchorToken);    
+            }
         }
         public void Visit(Return node){
-            Console.WriteLine("Return");
-            //poner loocounter si hay return;
+            if(loopCounter>0){
+                broke = true;
+            }
         }
         public void Visit(Not node){
-            if (node[0].GetType() == typeof(Identifier)){
-                varExistsInTables((Identifier)node[0]);
-            }
-            else{
-                Visit((dynamic)node[0]);
-            }
+            VisitChildren((dynamic)node);
         }
         public void Visit(Stmt node){
             VisitChildren((dynamic)node);
         }
+        public void Visit(ExpressionEquality node){
+            VisitChildren((dynamic)node);
+        }
+        public void Visit(ExpressionUnary node){
+            VisitChildren((dynamic)node);
+        }
+        public void Visit(ExpressionAdd node){
+            VisitChildren((dynamic)node);
+        }
+        public void Visit(ExpressionMul node){
+            VisitChildren((dynamic)node);
+        }
+        public void Visit(ExpressionComparison node){
+            VisitChildren((dynamic)node);
+        }
+
 
     }
 }

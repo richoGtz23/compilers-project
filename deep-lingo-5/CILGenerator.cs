@@ -169,92 +169,42 @@ namespace DeepLingo
             }
         }
         public string Visit(ElseIfList node){
-            Console.WriteLine("ElseIfList");
-            VisitChildren((dynamic)node);
+            return VisitChildren((dynamic)node);
         }
         public string Visit(Equals node){
-            Console.WriteLine("Equals ");
-            foreach (var n in node){
-                if (n.GetType() == typeof(Identifier))
-                {
-                    varExistsInTables((dynamic)n);
-                }
-                else
-                {
-                    Visit((dynamic)n);
-                }
-            }
+            return  Visit((dynamic)node[0])
+                    + Visit((dynamic)node[1])
+                    + "ceq\n";
+            
         }
         public string Visit(Not_Equals node){
-            Console.WriteLine("Not_Equals ");
-            foreach (var n in node){
-                if (n.GetType() == typeof(Identifier)){
-                    varExistsInTables((dynamic)n);
-                }
-                else{
-                    Visit((dynamic)n);
-                }
-            }
+            return  Visit((dynamic)node[0])
+                    + Visit((dynamic)node[1])
+                    + "ceq\nnot\n";
         }
         public string Visit(Gt node)
         {
-            Console.WriteLine("Gt ");
-            foreach (var n in node)
-            {
-                if (n.GetType() == typeof(Identifier))
-                {
-                    varExistsInTables((dynamic)n);
-                }
-                else
-                {
-                    Visit((dynamic)n);
-                }
-            }
+            return  Visit((dynamic)node[0])
+                    + Visit((dynamic)node[1])
+                    + "cgt\n";
         }
         public string Visit(Goet node)
         {
-            Console.WriteLine("Goet ");
-            foreach (var n in node)
-            {
-                if (n.GetType() == typeof(Identifier))
-                {
-                    varExistsInTables((dynamic)n);
-                }
-                else
-                {
-                    Visit((dynamic)n);
-                }
-            }
+            return  Visit((dynamic)node[1])
+                    + Visit((dynamic)node[0])
+                    + "clt\n";
         }
         public string Visit(Lt node)
         {
-            Console.WriteLine("Lt ");
-            foreach (var n in node)
-            {
-                if (n.GetType() == typeof(Identifier))
-                {
-                    varExistsInTables((dynamic)n);
-                }
-                else
-                {
-                    Visit((dynamic)n);
-                }
-            }
+            return  Visit((dynamic)node[0])
+                    + Visit((dynamic)node[1])
+                    + "clt\n";
         }
         public string Visit(Loet node)
         {
-            Console.WriteLine("Loet ");
-            foreach (var n in node)
-            {
-                if (n.GetType() == typeof(Identifier))
-                {
-                    varExistsInTables((dynamic)n);
-                }
-                else
-                {
-                    Visit((dynamic)n);
-                }
-            }
+            return  Visit((dynamic)node[1])
+                    + Visit((dynamic)node[0])
+                    + "cgt\n";
         }
         public string Visit(Or node){
             Console.WriteLine("Or ");

@@ -28,41 +28,20 @@ namespace DeepLingo {
     class FunCall : Node { }
     class Expression : Node { }
     class ExpressionUnary : Node { }
+    class ExpressionAdd : Node { }
+    class ExpressionMul : Node { }
+    class ExpressionEquality : Node { }
+    class ExpressionComparison : Node { }
+    class ExpressionList : Node { }
     class Array : Node { }
-    class Literal : Node { }
-    class Operator : Node { }
-    class OperatorBool : Node { }
-    class OperatorComp : Node { }
-    class OperatorMath : Node { }
-
-    // More created afterwards
     class Identifier : Node { }
-    //Array
-    class ArrNode : Node { }
-
-    //Operator Math
-    class Sum : Node { }
-    class Sub : Node { }
-    class Div : Node { }
-    class Mul : Node { }
-    class Mod : Node { }
-    // Operator Comp
-    class Gt : Node { }
-    class Goet : Node { }
-    class Lt : Node { }
-    class Loet : Node { }
-    class Equals : Node { }
-    class Not_Equals : Node { }
-
     class Not: Node { } 
     // Operator Bool
     class Or : Node { }
     class And : Node { }
-
     //Literals
     class VarInt : Node { }
     class VarChar : Node { };
     class VarString : Node { }
-
     class True: Node { }
 }

@@ -4,15 +4,14 @@ namespace Test
 {
     class test 
     {
-        string x = "lol";
         static void Main() 
         {   
-            string y,z;
-            Console.WriteLine("Hello World!");
-            Lol(1,2);
-            y = "lol2, ";
-            z = "lol3"; 
-            Console.WriteLine(y.TrimEnd(new Char[]{',',' '}));
+            int a = 5;
+            int b = 6;
+            if(a >= b){
+                Lol(a,b);
+            }
+
         }
         static void Lol(int b, int c){
             int a = b + c;
