@@ -17,10 +17,10 @@ namespace DeepLingo {
             Console.WriteLine ("Don't panic, use deep lingo");
             Console.WriteLine ();
 
-            if (args.Length != 1) {
-                Console.Error.WriteLine (
-                    "Please specify the name of the input file.");
-                Environment.Exit (1);
+            if (args.Length != 2){
+                Console.Error.WriteLine(
+                    "Please specify the name of the output file.");
+                Environment.Exit(1);
             }
 
             if (args[0] == "test") {
@@ -28,7 +28,9 @@ namespace DeepLingo {
                 tests.RunTests ();
             } else {
                 try {
+                    
                     var inputPath = args[0];
+                    var outputPath = args[1];
                     String input = File.ReadAllText (inputPath);
 
                     // Console.WriteLine (String.Format (
@@ -55,14 +57,19 @@ namespace DeepLingo {
                     foreach (var entry in semantic.localFunctionsTables) {
                         Console.WriteLine(entry.ToString());
                     }
+                    var codeGenerator = new CILGenerator();
+                    File.WriteAllText(outputPath,codeGenerator.Visit((dynamic) program));
+                    Console.WriteLine("Generated CIL code to '" + outputPath + "'.");Console.WriteLine();
                     // Parser parser = new Parser (new Scanner (input).Start ().GetEnumerator ());
                 } catch (FileNotFoundException e) {
                     Console.Error.WriteLine (e.Message);
                     Environment.Exit (1);
                 } catch (SyntaxError s) {
                     Console.WriteLine (s);
+                    Environment.Exit(1);
                 } catch (SemanticError s){
                     Console.WriteLine(s.Message);
+                    Environment.Exit(1);
                 }
             }
         }

@@ -264,10 +264,12 @@ namespace DeepLingo {
             Loop loop = new Loop(){
                 AnchorToken = Expect(TokenType.LOOP)
             };
+            StmtList stmtList = new StmtList();
             Expect (TokenType.BLOCK_BEGIN);
             while (firstOfStatement.Contains (CurrentToken)) {
-                loop.Add(Stmt ());
+                stmtList.Add(Stmt ());
             }
+            loop.Add(stmtList);
             Expect (TokenType.BLOCK_END);
             return loop;
         }

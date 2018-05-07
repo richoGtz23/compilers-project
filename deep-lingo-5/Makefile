@@ -18,10 +18,13 @@
 
 .PHONY: deeplingo.exe test clean
 
-deeplingo.exe: Program.cs Scanner.cs Token.cs TokenType.cs Tests.cs Parser.cs SyntaxError.cs Node.cs NodeList.cs FunctionTable.cs
+deeplingo.exe: Program.cs Scanner.cs Token.cs TokenType.cs Tests.cs Parser.cs SyntaxError.cs Node.cs NodeList.cs FunctionTable.cs CILGenerator.cs
 	rm -f deeplingo.exe
-	mcs -out:deeplingo.exe Program.cs Scanner.cs Token.cs TokenType.cs Tests.cs Parser.cs SyntaxError.cs Node.cs NodeList.cs SemanticAnalyzer.cs SymbolTable.cs SemanticError.cs FunctionTable.cs
+	mcs -out:deeplingo.exe Program.cs Scanner.cs Token.cs TokenType.cs Tests.cs Parser.cs SyntaxError.cs Node.cs NodeList.cs SemanticAnalyzer.cs SymbolTable.cs SemanticError.cs FunctionTable.cs CILGenerator.cs
 	chmod +x deeplingo.exe
+
+deeplingolib.dll: deeplingolib.cs 
+	mcs /t:library deeplingolib.cs
 
 test: 
 	rm -f deeplingo.exe
