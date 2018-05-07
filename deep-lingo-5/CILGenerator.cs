@@ -1,20 +1,7 @@
 /*
-  Buttercup compiler - Common Intermediate Language (CIL) code generator.
-  Copyright (C) 2013 Ariel Ortiz, ITESM CEM
-  
-  This program is free software: you can redistribute it and/or modify
-  it under the terms of the GNU General Public License as published by
-  the Free Software Foundation, either version 3 of the License, or
-  (at your option) any later version.
-  
-  This program is distributed in the hope that it will be useful,
-  but WITHOUT ANY WARRANTY; without even the implied warranty of
-  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-  GNU General Public License for more details.
-  
-  You should have received a copy of the GNU General Public License
-  along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+Luis Ricardo Gutierrez A01376121
+Josep Romagosa A01374637
+ */
 
 using System;
 using System.Text;
@@ -364,19 +351,15 @@ namespace DeepLingo{
                     + "call int32 class ['deeplingolib']'DeepLingo'.'Utils'::'Size'(int32)\n";
                 case "prints":
                     return VisitChildren(node) 
-                    + "call int32 class ['deeplingolib']'DeepLingo'.'Utils'::'Prints'(int32)\n"
-                    //+ "call void class ['mscorlib']'System'.'Console'::'WriteLine'(string)\n"
+                    + "call int32 class ['deeplingolib']'DeepLingo'.'Utils'::'Prints'(int32)\n" 
                     + "pop\n";
-                    ;
-                    
                 case "pow":
                     return VisitChildren(node) 
                     + "call int32 class ['deeplingolib']'DeepLingo'.'Utils'::'Pow'(int32,int32)\n"  ;
                 case "println":
                     return VisitChildren(node) 
                     + "call int32 class ['deeplingolib']'DeepLingo'.'Utils'::'Println'()\n"
-                    + "pop\n";
-                
+                    + "pop\n";  
                 case "reads":
                     return VisitChildren(node) 
                     + "call int32 class ['deeplingolib']'DeepLingo'.'Utils'::'Reads'()\n";
@@ -422,7 +405,7 @@ namespace DeepLingo{
             return
             "ldloc '" + variableName + "'\n" +
             "ldc.i4.1\n" +
-            "add\n" +
+            "add.ovf\n" +
             "stloc '" + variableName + "'\n";
         }
         public String Visit(Decrement node){
@@ -431,7 +414,7 @@ namespace DeepLingo{
             return
             "ldloc '" + variableName + "'\n" +
             "ldc.i4.1\n" +
-            "sub\n" +
+            "sub.ovf\n" +
             "stloc '" + variableName + "'\n";
         }
         public String Visit(Return node){
@@ -483,7 +466,7 @@ namespace DeepLingo{
                             + "pop\n"
                             + "ldc.i4 42\n"
                             + label + ":\n"; 
-                case TokenType.LT:
+                case TokenType.LOET:
                     return  "ldc.i4 42\n"
                             + VisitChildren(node)
                             + "ble '"+label+"'\n"
@@ -497,7 +480,7 @@ namespace DeepLingo{
                             + "pop\n"
                             + "ldc.i4.0\n"
                             + label + ":\n"; 
-                case TokenType.LOET:
+                case TokenType.LT:
                     return  "ldc.i4.0\n"
                             + VisitChildren(node)
                             + "bge '"+label+"'\n"

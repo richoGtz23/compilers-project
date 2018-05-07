@@ -12,7 +12,7 @@ namespace DeepLingo {
     class Scanner {
 
         readonly string input;
-
+        readonly Regex blockCommentLines = new Regex(@"\r\n?|\n");
         static readonly Regex regex = new Regex(
             @"
                 (?<Comment>           (\/\/)(.*)|(\/\*)((.|\n)*)(\*\/))                             
@@ -115,24 +115,23 @@ namespace DeepLingo {
                 new Token(m.Value, tc, row, m.Index - columnStart + 1);
             
             foreach (Match m in regex.Matches(input)) {
-                if (m.Groups["WhiteSpace"].Success 
-                    || m.Groups["Comment"].Success) {
-                    
-                    // Skip white space and comments.
-
+                if (m.Groups["Comment"].Success) {
+                    var flag = false;
+                    foreach (Match x in blockCommentLines.Matches(m.Groups["Comment"].Value))
+                    {   
+                        if("/*" == m.Groups["Comment"].Value.Substring(0,2)&& !flag)
+                            row--;
+                            flag=true;
+                        row++;
+                    }
                 } else if (m.Groups["Newline"].Success) {
 
                     // Found a new line.
                     row++;
                     columnStart = m.Index + m.Length;
 
-                } else if (m.Groups["WhiteSpace"].Success 
-                    || m.Groups["Comment"].Success) {
-                    
-                    // Skip white space and comments.
-
+                } else if (m.Groups["WhiteSpace"].Success){
                 } else if (m.Groups["Identifier"].Success) {
-
                     if (keywords.ContainsKey(m.Value)) {
 
                         // Matched string is a Buttercup keyword.
